@@ -13,7 +13,7 @@
 
 ## 🏠 Home Environment & Sandbox (`D:\AI\CLAUDE\`)
 1. **Claude Home Workspace:** All working files, temporary scripts, and artifacts MUST live strictly inside `D:\AI\CLAUDE\`.
-2. **Shared Base Knowledge (`D:\AI\BASE\`):** Read documentation from `D:\AI\BASE\` using sitemap `D:\AI\BASE\INDEX.md`.
+2. **Shared Base Knowledge (`D:\AI\GitHub\Secret_Privat\`):** Read documentation from `D:\AI\GitHub\Secret_Privat\` using sitemap `D:\AI\GitHub\Secret_Privat\INDEX.md`.
 3. **No Root Pollution:** Do not create files in the root of `D:\` or in other engines' folders.
 
 ---
