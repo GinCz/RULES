@@ -49,8 +49,12 @@
   * If the agent detects it is running in an unlinked web/cloud sandbox, it MUST NEVER clone repos. It must immediately alert Vladimir: *"⚠️ Вы находитесь в изолированной веб-песочнице Google Cloud, а не на вашем сервере! Переключитесь в меню на Remote Control инстанс (например, Oracle-49-Server). Клонирование заблокировано."*
 
 ### 5️⃣ RULE 5: 100% TWO-WAY GITHUB SYNC & MANDATORY INFRASTRUCTURE LOGGING
-* **Mandatory Detailed Infrastructure Logging:** Every step, deployment, configuration change, or script modification across any machine or server MUST be recorded in full technical detail in `WORKLOG.md` / `CHANGELOG.md` or git commit logs.
-* **Strict Append-Only Mandate:** In the knowledge database (`BASE/`), you may ONLY add new knowledge. Categorically forbidden to delete existing data.
+* **Mandatory Detailed Infrastructure Logging in WORKLOG.md:** Every step, deployment, configuration change, or script modification across any machine or server MUST be recorded in full technical detail directly inside `WORKLOG.md` (and `CHANGELOG.md` for versioned software releases). A Git commit message ALONE is NEVER a substitute for updating `WORKLOG.md`!
+* **Ironclad Closing Protocol (Worklog Before Reply):** BEFORE delivering the final response to Vladimir, the agent MUST:
+  1. Append the full technical report to `WORKLOG.md` in the root repository and target project repository;
+  2. Run `git add WORKLOG.md && git commit -m "docs: ..." && git push`;
+  3. Only AFTER `git push` is confirmed may the agent trigger the sound alert and send the final response. Delivering a final response without updating and pushing `WORKLOG.md` is strictly classified as incomplete work/defect.
+* **Strict Append-Only Mandate:** In the knowledge database (`BASE/`) and `WORKLOG.md`, you may ONLY add new knowledge/entries. Categorically forbidden to delete existing data.
 * **Full Two-Way Sync:** Keep local and remote repositories 100% synchronized when performing Git operations (`git pull` on start, `git commit` and `git push` on completion).
 
 ### 6️⃣ RULE 6: PRIVATE REPOSITORIES FOR SECRETS & ZERO-QUESTION CLEARANCE
@@ -99,17 +103,28 @@
 * **Mandatory Delivery to Desktop via MEGA:** Every newly built or modified Windows installer or executable MUST be delivered directly to Vladimir's computer desktop via the MEGA cloud sync directory (`/MEGA/DOCS/desktop/<FileName>` -> `D:\MEGA\DOCS\desktop\<FileName>`). Previous obsolete versions on the desktop must be rotated/purged so that strictly 1 active latest version remains.
 * **Metadata & Commit Synchronization:** Synchronize version numbers across source metadata, filenames, `CHANGELOG.md`, `README.md`, `WORKLOG.md`, and commit messages. Retain strictly the 2 latest versions in deployment mirrors.
 
-### 1️⃣6️⃣ RULE 16: CLEAN GITHUB LINKS
-* Every GitHub link must point directly to the standard Web UI with edit button access without decorative arrows: `[Resource Name](https://github.com/<owner>/<repo>/blob/main/<path>)`.
-* Categorical ban on raw URLs (`raw.githubusercontent.com`) and local `file:///` links for GitHub assets.
+### 1️⃣6️⃣ RULE 16: MANDATORY DIRECT ACTIONABLE LINKS (ZERO MANUAL SEARCH, NEW WINDOW) & CLEAN GITHUB URLS
+* **Mandatory Direct Clickable Links for Every Action / Post / Asset / Website (Ironclad):** Whenever the agent creates, deploys, publishes, or modifies ANY asset — including websites, WordPress plugins/themes, admin panels, web apps, social media posts (Facebook, Instagram, LinkedIn, Telegram), website pages, SEO metadata, map profiles (Google Maps, Firmy.cz), GitHub releases, files, or cloud assets — the agent MUST IMMEDIATELY provide direct, fully clickable Markdown links `[Link Text](https://...)` directly at the end of the chat response. Vladimir must NEVER have to manually search for how to log in, how to access an admin panel, what was created, or where it was published.
+* **Mandatory Web & Admin Access Block:** For any web or WordPress task, always explicitly provide at the end of the response:
+  - 🌐 **Прямая ссылка на сайт / Public Site:** `[Название](https://...)`
+  - 🔐 **Вход в админку / Admin Dashboard:** `[WP-Admin](https://.../wp-admin/)`
+  - ⚙️ **Целевой модуль / Страница плагина:** `[Раздел / Плагин](https://.../wp-admin/admin.php?page=...)`
+  - 🐙 **Репозиторий GitHub:** `[GitHub Репозиторий](https://github.com/<owner>/<repo>/...)`
+* **Open in New Window / Browser Standard:** All links must be clean standard HTTPS Markdown links that open directly in the browser/new tab.
+* **GitHub Link Standard:** Every GitHub link must point directly to the standard Web UI with edit button access without decorative arrows: `[Resource Name](https://github.com/<owner>/<repo>/blob/main/<path>)`.
+* Categorical ban on raw URLs (`raw.githubusercontent.com`) and local `file:///` links for GitHub assets and user-facing links.
 
-### 1️⃣7️⃣ RULE 17: STRICT 10-SECOND RESPONSE LIMIT, PROCESS TIMEOUTS & TELEGRAM NOTIFICATION
+### 1️⃣7️⃣ RULE 17: STRICT 10-SECOND RESPONSE LIMIT, PROCESS TIMEOUTS & ZERO-ORPHAN TASK SWEEP
 * **Strict 10-Second Response SLA:** Every direct question, status check, or operational prompt MUST receive an answer within **maximum 10 seconds**.
 * **Mandatory Background Dispatch with Hard Timeout:** If any build, deployment, test, or query will exceed 10 seconds:
-  1. The agent MUST dispatch the command as an asynchronous background task with an explicit maximum execution timeout (`TimeoutSec` / hard deadline, strictly 30–60 seconds for builds/compilations, max 15 seconds for network `/exec` calls);
+  1. The agent MUST dispatch the command as an asynchronous background task with an explicit maximum execution timeout (`TimeoutSec` / `NotificationTimeoutSeconds` strictly 30–60 seconds for builds/compilations, max 15 seconds for network `/exec` calls);
   2. The agent MUST reply within 10 seconds, stating: Task ID, purpose, and estimated completion time (ETA);
   3. Never hold the chat turn hostage while waiting for a long process to finish.
-* **Post-Execution Hang Watchdog:** After the timeout elapses, verify whether the task completed or hung; never leave hanging or orphan processes running.
+* **Strict Ban on Inline Multi-Line Shell Commands (Zero Unclosed Quotes):** Categorically forbidden to pass complex multi-line PowerShell/Bash scripts with nested quotes, `$`, or variables directly inside command-line strings in `run_command`. Any script longer than 2 lines or containing nested quotes MUST be written to `<model>/temp/script.ps1` (or `.sh`) via `write_file` and executed as a script file. This unconditionally eliminates syntax failures and hanging sessions waiting for closing quotes (`The string is missing the terminator`).
+* **Ironclad Pre-Reply Task Sweep (manage_task list):** BEFORE delivering the final response to Vladimir and playing the chime sound, the agent MUST explicitly inspect `manage_task action: "list"`. If any background tasks remain running, aborted, or orphaned:
+  1. The agent MUST immediately terminate every stale task via `manage_task action: "kill" TaskId: "<id>"`;
+  2. Confirm that exactly **0 background tasks** remain;
+  3. Delivering a final response or claiming completion while any task remains listed in `manage_task` is strictly categorized as a critical protocol violation.
 * **Mandatory Telegram Build Alerts:** When compiling or building a large `.exe` installer or long-running release, the agent must immediately inform Vladimir in chat that creation is underway, and upon successful completion (or critical error) immediately dispatch an automated Telegram alert via `notify_telegram.sh` / `notify_telegram.ps1` to Vladimir (@GinCz / `261784949`).
 
 ### 1️⃣8️⃣ RULE 18: MANDATORY ROLLBACK PLAN & PRE-CHANGE BACKUP
@@ -165,6 +180,15 @@
   - `FileDescription`: `<AppName>_vXXX`
   - `ProductName`: `<AppName>_vXXX`
   - `ProductVersion` / `FileVersion`: `vXXX` (`0.XXX.0.0`)
+* **Public GitHub Repositories Release Standard & Designated Targets:**
+  - For ANY project with a public GitHub repository (e.g. `GIN-PDF-RW`, `GIN-DNS-Switch`, `GIN-Dock-Wallpaper`), EVERY version increment MUST publish an official **GitHub Release** with compiled binary assets (`gh release create vXXX <Setup.exe>`) so users can download it directly from GitHub.
+  - Deliver compiled Windows installers to **BOTH**:
+    1. Desktop in MEGA: `/MEGA/DOCS/desktop/<AppName>_vXXX_Setup.exe` (maps to `D:\MEGA\DOCS\desktop\`)
+    2. Designated Flash Category in MEGA:
+       - `GIN-PDF-RW`: `/MEGA/WIN-FLASH/Util-WINDOWS/Graphics/PDF/` (maps to `D:\MEGA\WIN-FLASH\Util-WINDOWS\Graphics\PDF\`)
+       - `GIN-DNS-Switch`: `/MEGA/WIN-FLASH/Util-WINDOWS/N E T/` (maps to `D:\MEGA\WIN-FLASH\Util-WINDOWS\N E T\`)
+       - `GIN-Dock-Wallpaper`: `/MEGA/WIN-FLASH/Util-WINDOWS/Graphics/` (maps to `D:\MEGA\WIN-FLASH\Util-WINDOWS\Graphics\`)
+  - Retain strictly 2 latest versions in deployment targets (purge older releases via `mega-rm`).
 * **Delivery Strictly to Desktop in MEGA & Designated Targets:** All new Windows binaries and installers are written **EXCLUSIVELY to Vladimir's Desktop in MEGA** (`D:\MEGA\DOCS\desktop\` via `mega-put`) AND their designated utility target folders (specifically for `GIN-DNS-Switch`: `D:\MEGA\WIN-FLASH\Util-WINDOWS\N E T\GIN-DNS-Switch_vXXX_Setup.exe` / `/MEGA/WIN-FLASH/Util-WINDOWS/N E T/`). Purge older releases via `mega-rm` (retain strictly 2 latest versions).
 * **Strict MEGA Cloud Sync Root Standard (`/MEGA/` Prefix):**
   - Vladimir's synchronized root folder on local drive `D:\` is mapped **EXCLUSIVELY to `/MEGA/` in the cloud**.
@@ -206,11 +230,49 @@
 * Format strictly: `[ProjectName] - [Core]` (e.g. `[GIN-VPN] - Servers`, `[GIN-Chat] - Admin`). Short 2–3 words.
 
 ### 1️⃣1️⃣ ANDROID TV & TV-BOX REMOTE OPERATIONS (ZERO AUTO-REBOOT & MANDATORY LIVE SCREEN LOG)
+* **Mandatory Pre-Flight Device Profile Inspection (Strict Invariant):**
+  BEFORE running any command (`adb`, `pm`, `settings`, `am`) against ANY TV device, the agent MUST read that device's passport file in `Android/GIN-Remote/DEVICES/<Device_ID>.md` (e.g. `Vestel_Android_TV.md`, `Hisilicon_TVBOX.md`). It is CATEGORICALLY FORBIDDEN to execute blind commands without verifying the target device's quirks, platform hazards, and hardware invariants!
 * **Mandatory Live TV OSD Screen Logging:** Every update, APK deployment, configuration change, diagnostic check, or maintenance task executed on an Android TV or TV-Box (via GIN-Remote, ADB, or automation scripts) MUST transmit every action in real time to the TV screen log (`log_tv` via GIN-Bridge TCP socket `127.0.0.1:17001` format: `CMD <DEVICE_ID> KEY <MSG>\n`). The user on the TV must see live progress.
 * **Categorical Ban on Autonomous Device Reboot:** Agents, LLMs, and automated scripts are CATEGORICALLY FORBIDDEN from executing automatic reboots (`adb reboot`, `su -c reboot`, broadcast intents, or shell commands).
 * **Mandatory Final Status & Explicit Manual Reboot Notice:** Any update or configuration session on an Android TV/Box MUST conclude with an explicit final status message displayed in the TV screen log AND in the chat:
   - If a system reboot is REQUIRED to apply changes: state clearly: `⚠️ Все готово! Требуется вручную перезагрузить устройство пультом.` (leaving the reboot strictly to the user via remote control).
   - If a system reboot is NOT required: state clearly: `✅ Все готово! Перезагрузка не требуется.`
+* **Mandatory Default Debloat on ALL TV Devices (Ironclad Rule):**
+  Whenever configuring or optimizing ANY Smart TV, TV-Box, or TV-Stick, the agent MUST unconditionally execute:
+  1. **Stock Launcher & Chromecast Built-in Safety Invariant (Never Freeze on Smart TVs):**
+     - On Smart TVs (especially Vestel, Hyundai, Philips, Sony), **NEVER disable or freeze** `com.google.android.tvlauncher` or `com.google.android.apps.tv.launcherx`.
+     - Freezing stock launcher breaks Chromecast built-in (`com.google.android.apps.mediashell`) and leads to critical `system_server` crashes or bootloops (`FallbackHome` grey/black screen).
+     - Set default launcher strictly via standard system APIs: `cmd package set-home-activity com.gincz.ginlauncher/.MainActivity` & `cmd role add-role-holder android.app.role.HOME com.gincz.ginlauncher`.
+  2. **Purge Commercial Bloatware (Uninstall/Disable):**
+     - Netflix: `com.netflix.ninja`, `com.netflix.mediaclient`
+     - Prime Video: `com.amazon.amazonvideo.livingroom`, `com.amazon.avod.thirdpartyclient`
+     - YouTube Music: `com.google.android.youtube.tvmusic`
+     - Google Play Movies: `com.google.android.videos`
+  3. **Disable-Only Bloatware (Disable via `pm disable-user --user 0`):**
+     - Live Channels: `com.google.android.tv`, `com.android.tv`
+     - PatchWall & Xiaomi Feeds: `com.mitv.tvhome`, `com.xiaomi.mitv.tvhome`, `com.xiaomi.mitv.upgrade`, `com.mitv.videoplayer`
+  4. **Disable Google Play Store, Protect, Antivirus & Automatic App Updates:**
+     - On Vladimir's TVs, all apps are installed manually. To block ads, unrequested app modifications, and background downloads:
+     - `pm disable-user --user 0 com.android.vending` (Google Play Store daemon disabled to stop auto-updates completely).
+     - `pm disable-user --user 0 com.google.android.play.games`
+     - `settings put global package_verifier_enable 0`
+     - `settings put global package_verifier_user_consent -1`
+     - `settings put global upload_apk_enable 0`
+     - `settings put global auto_update 0`
+     - `pm disable-user --user 0 com.google.android.gms/.update.SystemUpdateService`
+     - `pm disable-user --user 0 com.google.android.gsf/.update.SystemUpdateService`
+  5. **Strict Chromecast Immunity (Never Touch):**
+     - `com.google.android.apps.mediashell` (Chromecast Built-in) MUST ALWAYS be preserved and enabled (`pm enable com.google.android.apps.mediashell`). Screen casting from phones, Google Chrome, and Cent Browser must never be impaired.
+  6. **Mandatory First-Run Low-RAM (≤ 1.5GB) & Stick Emergency Thermal Profile:**
+     Whenever connecting to, configuring, or optimizing ANY Android TV stick or low-RAM TV-Box (≤ 1.5GB RAM, e.g. Xiaomi Mi TV Stick S805Y, Realme TV Stick, Chromecast HD, etc.), the agent MUST unconditionally execute the emergency thermal & RAM optimization FIRST, BEFORE any other commands, installations, or app launches:
+     - **Reduce UI Resolution to 720p:** `wm size 1280x720` and `wm density 213` (cuts GPU memory allocation, texture cache, and fillrate load on weak Mali GPUs in half; drops SoC temperature by 15–20°C, eliminating thermal shutdown/reboot loops while hardware video decoding in media players retains 1080p).
+     - **Disable All System Animations:**
+       - `settings put global window_animation_scale 0.0`
+       - `settings put global transition_animation_scale 0.0`
+       - `settings put global animator_duration_scale 0.0`
+     - **Strict Background Process Limit:** `settings put global background_process_limit 2`
+     - **Disable Heavy Recommendation Feeds & Telemetry:** `pm disable-user --user 0 com.google.android.tvrecommendations`
+     - **Mandatory Power Supply Verification Notice:** Immediately alert the user if a stick is powered from a TV's USB port (0.5A). Sticks MUST be powered strictly from an external dedicated 5V ≥ 1.5A–2.0A power adapter to prevent severe voltage drop reboots under load.
 
 ### 1️⃣2️⃣ MANDATORY TELEGRAM NOTIFICATIONS ON BUILD & DEPLOYMENT COMPLETION
 * **Universal Telegram Notification:** Every project build script, compilation pipeline (Windows EXE, Android APK, Linux daemon/service builds) and long-running asynchronous preparation task MUST integrate automated Telegram notification to Vladimir.
@@ -234,7 +296,7 @@
   - **Hard Timeout on `/exec` Calls (Max 15s):** Any HTTP POST `/exec` call sent through the remote bridge (`http://152.53.182.222:9876/exec`) MUST have an explicit hard command timeout of maximum 15 seconds (`--max-time 15` in curl). Categorically forbidden to wait indefinitely on hanging remote command sockets.
   - **Non-Blocking Status Verification via Heartbeat:** When an agent service is restarted, NEVER query status through `/exec` (which blocks up to 180s while the service is cycling). Verify online presence and version exclusively through the central registry heartbeat in `rd.gincz.com` / `clients.json` (`agent_version` and `agent_last_seen`), which updates within 15–30 seconds.
 
-### 1️⃣5️⃣ MANDATORY `versions/` FOLDER & COMPANION ZIP ARCHIVES FOR ALL CMD/BAT PROJECTS
+### 2️⃣0️⃣ RULE 20: MANDATORY `versions/` DIRECTORY & COMPANION ZIP ARCHIVES FOR ALL CMD/BAT PROJECTS
 * **Root Directory Cleanliness:** In any Windows script or CMD project repository or subfolder, the root directory MUST contain ONLY `README.md` and clean subfolders (`versions/`, `docs/`, `src/`). Categorical ban on littering root directories with loose `.cmd` or `.bat` files.
 * **Dedicated `versions/` Directory:** All release versions of Windows scripts (`.cmd`, `.bat`) must reside strictly in a dedicated `versions/` subfolder. Retain strictly the 2 latest versions (`vXXX` and `vYYY`), purging older obsolete versions.
 * **Mandatory Companion ZIP Archive for EVERY Version:**
@@ -242,3 +304,15 @@
 * **Mandatory ZIP Download Link in `README.md`:** The root `README.md` of every CMD project must explicitly document:
   1. Safe ZIP download link: `[Скачать ZIP-архив vXXX](versions/<AppName>_vXXX.zip)` as the primary safe download method to avoid HTML corruption.
   2. 1-click PowerShell launcher: `powershell -ep bypass -c "iwr -useb <url> -OutFile <file>; .\<file>"`.
+
+### 2️⃣1️⃣ RULE 21: RUSSIAN SERVERS (RU-109, CLOUDCORE-191) & DOMAINS .RU: STRICT GREY-CLOUD, ECH-OFF & 301 INTEGRITY
+* **Categorical Ban on Cloudflare Proxy (Strict Grey Cloud DNS-Only):**
+  All domains hosted on Russian servers (`RU-109` `212.109.223.109`, `CloudCore-191` `31.59.126.191`) and Russian client sites must operate **EXCLUSIVELY in Grey Cloud mode (`proxied: false`)**. Categorically forbidden to enable the Orange Cloud (Cloudflare CDN Proxy) on Russian nodes — Roskomnadzor (RKN / TSPU) actively throttles and blocks Cloudflare Anycast IP ranges inside the Russian Federation, causing immediate total site outages for Russian visitors.
+* **Mandatory ECH (Encrypted Client Hello) Disabling via Cloudflare API:**
+  For ALL zones on Russian servers (and specifically `prodvig-saita.ru`), Cloudflare's Encrypted Client Hello setting MUST be explicitly disabled (`PATCH /settings/ech` ➔ `{"value": "off"}`). In Russia, TSPU hardware immediately terminates (TCP RST / packet drop) any TLS handshake presenting ECH extensions or DNS Type 65 HTTPS RR parameters.
+* **No Blanket Cloudflare Rollouts (Zero Blind Propagation to RU Nodes):**
+  Never apply global account-wide Cloudflare scripts (Always Use HTTPS, WAF rules, Bot Fight Mode, Browser Integrity Check) to Russian zones. Zones for RU-109 must keep: `browser_check: "off"`, `security_level: "essentially_off"`, `ech: "off"`.
+* **Nginx HTTP-to-HTTPS Redirect Integrity & `$request_uri` Mandate:**
+  On server RU-109, any port 80 redirect to HTTPS MUST include `$request_uri` (e.g. `return 301 https://$host$request_uri;` or `return 301 https://prodvig-saita.ru$request_uri;`). Categorically forbidden to omit `$request_uri` (e.g. `return 301 https://prodvig-saita.ru;`), which strips paths (`/test`, `/vpn/`, `/server-set/`) and permanently poisons the 301 redirect cache in mobile iOS Safari / Chrome.
+* **Direct 1-Step Redirection for Script & Utility Endpoints:**
+  Dedicated test or utility endpoints (`/test/`, `/vpn/`, `/server-set/`, `/ip/`) must have explicit location blocks on both port 80 and port 443 with direct one-step routing to the canonical trailing slash (`return 301 https://prodvig-saita.ru/test/;`), preventing double redirects and broken relative AJAX requests (`ping.php`, `send_report.php`).
