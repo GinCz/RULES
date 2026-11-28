@@ -1,4 +1,4 @@
-﻿# 🤖 Master AI Rules & Sandboxing Manifest (RULES)
+# 🤖 Master AI Rules & Sandboxing Manifest (RULES)
 
 > **Single Source of Truth for Universal AI Rules, Token Economy, and Environment Profiles**  
 > *Repository:* [GinCz/RULES ↗](https://github.com/GinCz/RULES) | *Author:* [Vladimir Bulantsev (@GinCz)](https://github.com/GinCz) | *Version:* v2026-11
@@ -56,6 +56,12 @@ RULES/
 | **Perplexity AI** | `Perplexity/` | Active | Search & web ground-truth grounding |
 
 ---
+
+## 🏷️ Keywords, Topics & Search Metadata
+
+           
+
+<br/>
 
 ## 📋 Version History & Changelog
 
